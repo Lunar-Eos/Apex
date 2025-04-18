@@ -1,4 +1,4 @@
---!nonstrict
+--!nocheck
 
 -- TODO:
 -- There's notable typechecking bugs in the engine.
@@ -13,8 +13,6 @@ local _TWEENSERVICE = game:GetService("TweenService")
 -- Libraries
 local ClientLibrary = _REPLICATEDSTORAGE.ClientLibrary
 
-local Enums = require(ClientLibrary.Enums)
-local mathv = require(ClientLibrary.Generics.mathv)
 local ui = require(ClientLibrary.Generics.ui)
 
 
@@ -77,7 +75,7 @@ export type ParallaxGui = typeof(setmetatable({} :: {
 	PARAMETERS: 
 	- <GuiObject> frame: The frame to track mouse movement of for the parallax effect.
 	- <number> maxLength: The furthest the parallax effect can go.
-	- <number> t: The amount of time that the parallax effect can take.
+	- <number> duration: The amount of time that the parallax effect can take.
 	- <Enum.EasingStyle> easeStyle: The EasingStyle to use for animating the parallax effect.
 	- <boolean> ignoreInset: Whether the ScreenGui is ignoring topbar offsets or not.
 
@@ -88,7 +86,7 @@ export type ParallaxGui = typeof(setmetatable({} :: {
 	- ParallaxGui requires an existing frame in a ScreenGui. You may hide it if it is affecting your design.
 
 	CONSTRUCTOR - Instantiates a new ParallaxGui object, allowing you to create parallax effects by inserting new GuiObjects into the object. ]] 
-function ParallaxGui.new(frame: GuiObject, maxLength: number, t: number, easeStyle: Enum.EasingStyle, ignoreInset: boolean): ParallaxGui
+function ParallaxGui.new(frame: GuiObject, maxLength: number, duration: number, easeStyle: Enum.EasingStyle, ignoreInset: boolean): ParallaxGui
 	guiCount += 1
 	
 	local t = {
@@ -96,7 +94,7 @@ function ParallaxGui.new(frame: GuiObject, maxLength: number, t: number, easeSty
 		Objects = {},
 		Enabled = true,
 		
-		Time = t,
+		Time = duration,
 		EasingStyle = easeStyle,
 		MaxLength = maxLength,
 	}
@@ -203,7 +201,7 @@ function ParallaxGui:Update(object: GuiObject, position: UDim2, direction: Vecto
 	local real = nil
 	for _, direction in self.Objects do
 		for i, group in direction do
-			local obj, pos = group[1], group[2]
+			local obj = group[1]
 			
 			if obj == object then 
 				real = obj 
@@ -213,7 +211,11 @@ function ParallaxGui:Update(object: GuiObject, position: UDim2, direction: Vecto
 			end
 		end
 	end
-	if real == nil then warn("Attempt to find object that has not been inserted into ParallaxGui. \nThis call has been ignored.") return end
+	
+	if real == nil then 
+		warn("Attempt to find object that has not been inserted into ParallaxGui. \nThis call has been ignored.") 
+		return 
+	end
 	
 	if self.Objects[SerializeVector(direction)] == nil then self.Objects[SerializeVector(direction)] = {} end
 	
