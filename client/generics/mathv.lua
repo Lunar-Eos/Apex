@@ -39,6 +39,7 @@ local mathv = {
 	mathv.swap(a, b)
 	mathv.lerp(a, b, t)
 	mathv.normalize(x, min, max)
+	mathv.normalizeneg(x, min, max)
 	mathv.circlamp(x, min, max)
 	mathv.lcm(a, b)
 	mathv.hcf(a, b)
@@ -213,6 +214,21 @@ end
 	Returns the number normalized between 0 to 1. ]] 
 function mathv.normalize(x: number, min: number, max: number): number
 	return math.clamp((x - min) / (max - min), 0, 1)
+end
+
+
+--[[ mathv.normalizeneg(min, max, x)
+	PARAMETERS: 
+	- <number> a: The minimum.
+	- <number> b: The maximum.
+	- <number> x: The number in question.
+
+	RETURNS:
+	- <number> x: The normalized number between -1 to 1.
+
+	Returns the number normalized between -1 to 1. ]] 
+function mathv.normalizeneg(x: number, min: number, max: number): number
+	return math.clamp((2 * ((x - min) / (max - min))) - 1, -1, 1)
 end
 
 
