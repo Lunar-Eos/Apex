@@ -1,43 +1,35 @@
-import { BaseApexObject } from "../internals/BaseApexObject";
+export class dState {
+	_Callbacks: { [name: string]: (old: unknown, next: unknown) => undefined } = {};
 
-export class State<T> extends BaseApexObject {
-	private _Callbacks: { [name: string]: (old: T, next: T) => undefined } = {};
+	Value: unknown = undefined;
 
-	protected Value: T;
-
-	constructor(val: T) {
-		super("State");
-
-		this.Value = val;
-	}
-
-	private fireCallbacks(a: T, b: T) {
-		for (const [_, callback] of pairs(this._Callbacks)) {
-			callback(a, b);
-		}
-	}
+	constructor() {}
 
 	Get() {
 		return this.Value;
 	}
 
-	Set(a: T) {
+	Set(a: unknown) {
 		if (a === this.Value) return;
 
 		const prev = this.Value;
 		this.Value = a;
 
-		this.fireCallbacks(prev, this.Value);
+		for (const [_, callback] of pairs(this._Callbacks)) {
+			callback(prev, this.Value);
+		}
 	}
 
-	Update(fn: (old: T) => T) {
+	Update(fn: (old: unknown) => unknown) {
 		const prev = this.Value;
 		this.Value = fn(this.Value);
 
-		this.fireCallbacks(prev, this.Value);
+		for (const [_, callback] of pairs(this._Callbacks)) {
+			callback(prev, this.Value);
+		}
 	}
 
-	BindOnChange(name: string, callback: (old: T, next: T) => undefined) {
+	BindOnChange(name: string, callback: (old: unknown, next: unknown) => undefined) {
 		this._Callbacks[name] = callback;
 	}
 
