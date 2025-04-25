@@ -1,11 +1,15 @@
 export class dState {
 	_Callbacks: { [name: string]: (old: unknown, next: unknown) => undefined } = {};
 
-	Value: unknown = undefined;
+	Value: unknown = 0;
 
 	constructor() {}
 
-	Get() {
+	Test(this: void) {
+		print("yes");
+	}
+
+	Get(this: dState) {
 		return this.Value;
 	}
 

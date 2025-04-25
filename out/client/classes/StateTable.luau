@@ -1,53 +1,47 @@
 -- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
-local StateTable
+local dStateTable
 do
-	local super = BaseApexObject
-	StateTable = setmetatable({}, {
+	dStateTable = setmetatable({}, {
 		__tostring = function()
-			return "StateTable"
+			return "dStateTable"
 		end,
-		__index = super,
 	})
-	StateTable.__index = StateTable
-	function StateTable.new(...)
-		local self = setmetatable({}, StateTable)
+	dStateTable.__index = dStateTable
+	function dStateTable.new(...)
+		local self = setmetatable({}, dStateTable)
 		return self:constructor(...) or self
 	end
-	function StateTable:constructor(val)
-		super.constructor(self, "StateTable")
+	function dStateTable:constructor()
 		self._Callbacks = {}
-		self.Value = val
+		self.Value = {}
 	end
-	function StateTable:fireCallbacks(a, b)
-		for _, callback in pairs(self._Callbacks) do
-			callback(a, b)
-		end
-	end
-	function StateTable:Get(key)
+	function dStateTable:Get(key)
 		return self.Value[key]
 	end
-	function StateTable:Set(key, a)
+	function dStateTable:Set(key, a)
 		if a == self.Value[key] then
 			return nil
 		end
 		local prev = self.Value[key]
 		self.Value[key] = a
-		self:fireCallbacks(prev, self.Value[key])
+		for _, callback in pairs(self._Callbacks) do
+			callback(prev, self.Value[key])
+		end
 	end
-	function StateTable:Update(key, fn)
+	function dStateTable:Update(key, fn)
 		local prev = self.Value[key]
 		self.Value[key] = fn(self.Value[key])
-		self:fireCallbacks(prev, self.Value[key])
+		for _, callback in pairs(self._Callbacks) do
+			callback(prev, self.Value[key])
+		end
 	end
-	function StateTable:BindOnChange(name, callback)
+	function dStateTable:BindOnChange(name, callback)
 		self._Callbacks[name] = callback
 	end
-	function StateTable:UnbindOnChange(name)
+	function dStateTable:UnbindOnChange(name)
 		self._Callbacks[name] = nil
 	end
 end
 return {
-	StateTable = StateTable,
+	dStateTable = dStateTable,
 }

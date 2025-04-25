@@ -2,6 +2,8 @@
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local Object = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "object-utils")
 local dState = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "State").dState
+local dStateTable = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "StateTable").dStateTable
+local dTest = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "Test").dTest
 local BaseApexObject
 do
 	BaseApexObject = setmetatable({}, {
@@ -18,6 +20,17 @@ do
 		repeat
 			if className == "State" then
 				local object = dState.new()
+				self.ClassName = "State"
+				return Object.assign(self, object)
+			end
+			if className == "StateTable" then
+				local object = dStateTable.new()
+				self.ClassName = "StateTable"
+				return Object.assign(self, object)
+			end
+			if className == "Test" then
+				local object = dTest.new()
+				print(Object.assign(self, object))
 				self.ClassName = "Test"
 				return Object.assign(self, object)
 			end
@@ -40,6 +53,12 @@ do
 		end
 	end
 end
+--[[
+	 TODO:
+		- fix methods not being cloned into instances
+		- remove all test classes and interfaces
+	
+]]
 return {
 	BaseApexObject = BaseApexObject,
 }

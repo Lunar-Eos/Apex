@@ -8,7 +8,7 @@ const DEFAULT_SHOW_ON_DEFAULT = false;
 const DEFAULT_COLOR = Color3.fromRGB(172, 172, 172);
 const DEFAULT_TRANSPARENCY = 0;
 
-export class CircularCooldown extends BaseApexObject {
+export class CircularCooldown {
 	private _CooldownObject: NumberValue = new Instance("NumberValue");
 	private _ChangeEvent: BindableEvent = new Instance("BindableEvent");
 	private _CompleteEvent: BindableEvent = new Instance("BindableEvent");
@@ -34,8 +34,6 @@ export class CircularCooldown extends BaseApexObject {
 		color: Color3 | undefined,
 		transparency: number | undefined,
 	) {
-		super("CircularCooldown");
-
 		const folder = new Instance("Folder");
 		folder.Name = "CircularCooldown";
 

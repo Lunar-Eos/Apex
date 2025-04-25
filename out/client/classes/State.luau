@@ -13,7 +13,10 @@ do
 	end
 	function dState:constructor()
 		self._Callbacks = {}
-		self.Value = nil
+		self.Value = 0
+	end
+	function dState.Test()
+		print("yes")
 	end
 	function dState:Get()
 		return self.Value

@@ -1,7 +1,6 @@
 -- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local mathv = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "generics", "mathv")
-local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
 local TweenService = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "services").TweenService
 local IMAGE_POSITIONS = { UDim2.fromScale(0, 0), UDim2.fromScale(-1, 0) }
 local DEFAULT_SHOW_ON_DEFAULT = false
@@ -9,12 +8,10 @@ local DEFAULT_COLOR = Color3.fromRGB(172, 172, 172)
 local DEFAULT_TRANSPARENCY = 0
 local CircularCooldown
 do
-	local super = BaseApexObject
 	CircularCooldown = setmetatable({}, {
 		__tostring = function()
 			return "CircularCooldown"
 		end,
-		__index = super,
 	})
 	CircularCooldown.__index = CircularCooldown
 	function CircularCooldown.new(...)
@@ -22,7 +19,6 @@ do
 		return self:constructor(...) or self
 	end
 	function CircularCooldown:constructor(gui, cd, rate, playWhileActive, showOnCreation, color, transparency)
-		super.constructor(self, "CircularCooldown")
 		self._CooldownObject = Instance.new("NumberValue")
 		self._ChangeEvent = Instance.new("BindableEvent")
 		self._CompleteEvent = Instance.new("BindableEvent")
