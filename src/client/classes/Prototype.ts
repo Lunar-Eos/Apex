@@ -2,7 +2,7 @@ import { BaseApexObject } from "../internals/BaseApexObject";
 import { State } from "../classes/State";
 
 export class Prototype extends BaseApexObject {
-	constructor(className: string) {
+	constructor(className: ClassNames) {
 		super();
 
 		switch (className) {
@@ -19,3 +19,5 @@ export class Prototype extends BaseApexObject {
 		}
 	}
 }
+
+type ClassNames = "State" | "StateTable" | "CircularCooldown" | "Spritesheet";
