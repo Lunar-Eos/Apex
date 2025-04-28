@@ -25,7 +25,7 @@ export class Timer extends BaseApexObject {
 	}
 
 	constructor(seconds: number, scale: number) {
-		super("Timer");
+		super();
 
 		this._SecondsLeft = seconds;
 

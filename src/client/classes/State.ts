@@ -1,15 +1,15 @@
-export class dState {
+import { BaseApexObject } from "../internals/BaseApexObject";
+
+export class State extends BaseApexObject {
 	_Callbacks: { [name: string]: (old: unknown, next: unknown) => undefined } = {};
 
 	Value: unknown = 0;
 
-	constructor() {}
-
-	Test(this: void) {
-		print("yes");
+	constructor() {
+		super();
 	}
 
-	Get(this: dState) {
+	Get(this: State) {
 		return this.Value;
 	}
 

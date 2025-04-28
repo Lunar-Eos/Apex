@@ -17,7 +17,7 @@ do
 		return self:constructor(...) or self
 	end
 	function Timer:constructor(seconds, scale)
-		super.constructor(self, "Timer")
+		super.constructor(self)
 		self._CountThread = nil
 		self._ChangeFunction = function() end
 		self._EndFunction = function() end
