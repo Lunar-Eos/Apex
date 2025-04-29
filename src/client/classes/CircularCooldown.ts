@@ -1,119 +1,130 @@
-import mathv from "../generics/mathv";
-
-import { BaseApexObject } from "../internals/BaseApexObject";
 import { TweenService } from "@rbxts/services";
+import { BaseApexObject } from "../internals/BaseApexObject";
 
-const IMAGE_POSITIONS = [UDim2.fromScale(0, 0), UDim2.fromScale(-1, 0)];
-const DEFAULT_SHOW_ON_DEFAULT = false;
-const DEFAULT_COLOR = Color3.fromRGB(172, 172, 172);
-const DEFAULT_TRANSPARENCY = 0;
+const TRANSPARENCY_SEQUENCE = new NumberSequence([
+	new NumberSequenceKeypoint(0, 0),
+	new NumberSequenceKeypoint(0.5, 0),
+	new NumberSequenceKeypoint(0.501, 1),
+	new NumberSequenceKeypoint(1, 1),
+]);
 
-export class CircularCooldown {
+export class dCircularCooldown extends BaseApexObject {
 	private _CooldownObject: NumberValue = new Instance("NumberValue");
-	private _ChangeEvent: BindableEvent = new Instance("BindableEvent");
+
 	private _CompleteEvent: BindableEvent = new Instance("BindableEvent");
-	private _Connection: RBXScriptConnection | undefined = undefined;
+	private _ChangeEvent: BindableEvent = new Instance("BindableEvent");
+
 	private _Tween: Tween | undefined = undefined;
 
-	readonly Changed: RBXScriptSignal | undefined = this._ChangeEvent.Event;
-	readonly Completed: RBXScriptSignal | undefined = this._CompleteEvent.Event;
+	readonly Completed: RBXScriptSignal = this._CompleteEvent.Event;
+	readonly Changed: RBXScriptSignal = this._ChangeEvent.Event;
 
-	public readonly Frame: Frame;
+	public Object: Folder;
 
-	public RemainingCooldown: number;
-	public Cooldown: number;
-	public Rate: number;
-	public ReplayWhileActive: boolean;
+	public RemainingDuration: number = 1;
+	public Duration: number = 1;
+	public Rate: number = 1;
 
-	constructor(
-		gui: GuiObject,
-		cd: number,
-		rate: number | undefined,
-		playWhileActive: boolean | undefined,
-		showOnCreation: boolean | undefined,
-		color: Color3 | undefined,
-		transparency: number | undefined,
-	) {
+	constructor() {
+		super("CircularCooldown");
+
 		const folder = new Instance("Folder");
 		folder.Name = "CircularCooldown";
+		folder.SetAttribute("Color", new Color3(1, 1, 1));
+		folder.SetAttribute("Transparency", 0);
+		folder.SetAttribute("Visible", true);
+		folder.SetAttribute("ZIndex", 1);
 
-		const mainFrame = new Instance("Frame");
-		mainFrame.BackgroundTransparency = 1;
-		mainFrame.Visible = showOnCreation || DEFAULT_SHOW_ON_DEFAULT;
-		mainFrame.Size = UDim2.fromScale(1, 1);
+		folder.GetAttributeChangedSignal("Color").Connect(() => {
+			const val: Color3 = folder.GetAttribute("Color") as Color3;
 
-		for (let i = 1; i >= 0; i--) {
-			const frame = new Instance("Frame");
-			frame.Name = tostring(i);
-			frame.ClipsDescendants = true;
-			frame.BackgroundTransparency = 1;
-			frame.Position = UDim2.fromScale(i - 1, 0);
-			frame.AnchorPoint = new Vector2(i - 1, 0);
-			frame.Visible = showOnCreation || DEFAULT_SHOW_ON_DEFAULT;
-			frame.Size = UDim2.fromScale(0.5, 1);
+			(folder.FindFirstChild("Left") as ImageLabel).ImageColor3 = val;
+			(folder.FindFirstChild("Right") as ImageLabel).ImageColor3 = val;
+		});
 
-			const image = new Instance("ImageLabel");
-			image.Name = "Shade";
-			image.BackgroundTransparency = 1;
-			image.Image = "rbxassetid://15478839340";
-			image.ImageColor3 = color || DEFAULT_COLOR;
-			image.ImageTransparency = transparency || DEFAULT_TRANSPARENCY;
-			image.Size = UDim2.fromScale(2, 1);
-			image.Position = IMAGE_POSITIONS[i];
+		folder.GetAttributeChangedSignal("Transparency").Connect(() => {
+			const val: number = folder.GetAttribute("Transparency") as number;
 
-			const gradient = new Instance("UIGradient");
-			gradient.Transparency = new NumberSequence([
-				new NumberSequenceKeypoint(0, 0),
-				new NumberSequenceKeypoint(0.5, 0),
-				new NumberSequenceKeypoint(0.501, 1),
-				new NumberSequenceKeypoint(1, 1),
-			]);
-			gradient.Rotation = 180 * (i - 1);
-			gradient.SetAttribute("StartRotation", 180 * (i - 1));
-			gradient.SetAttribute("EndRotation", 180 * (i - 1) + 180);
+			(folder.FindFirstChild("Left") as ImageLabel).ImageTransparency = val;
+			(folder.FindFirstChild("Right") as ImageLabel).ImageTransparency = val;
+		});
 
-			gradient.Parent = image;
-			image.Parent = frame;
-			frame.Parent = mainFrame;
-		}
+		folder.GetAttributeChangedSignal("Visible").Connect(() => {
+			const val: boolean = folder.GetAttribute("Visible") as boolean;
 
-		mainFrame.Parent = folder;
-		folder.Parent = gui;
+			(folder.FindFirstChild("Left") as ImageLabel).Visible = val;
+			(folder.FindFirstChild("Right") as ImageLabel).Visible = val;
+		});
 
-		this.Frame = mainFrame;
-		this.RemainingCooldown = cd;
-		this.Cooldown = cd;
-		this.Rate = rate || 1;
-		this.ReplayWhileActive = playWhileActive || false;
+		folder.GetAttributeChangedSignal("ZIndex").Connect(() => {
+			const val: number = folder.GetAttribute("ZIndex") as number;
+
+			(folder.FindFirstChild("Left") as ImageLabel).ZIndex = val;
+			(folder.FindFirstChild("Right") as ImageLabel).ZIndex = val;
+		});
+
+		// #region Init
+		this._CooldownObject.Changed.Connect(() => {
+			this._ChangeEvent.Fire();
+
+			// FLAG: implement circular spinny logic here
+		});
+		// #endregion
+
+		// #region Create the semicircle images.
+		const left = new Instance("ImageLabel");
+		left.BackgroundTransparency = 1;
+		left.AnchorPoint = new Vector2(0, 0.5);
+		left.Position = new UDim2(0, 0, 0.5, 0);
+		left.Size = new UDim2(0.5, 0, 1, 0);
+		left.Image = "rbxassetid://134149598090509";
+		left.ClipsDescendants = true;
+
+		const right = new Instance("ImageLabel");
+		right.BackgroundTransparency = 1;
+		right.AnchorPoint = new Vector2(1, 0.5);
+		right.Position = new UDim2(1, 0, 0.5, 0);
+		right.Size = new UDim2(0.5, 0, 1, 0);
+		right.Image = "rbxassetid://132382211808404";
+		right.ClipsDescendants = true;
+		// #endregion
+
+		// #region Create the gradients.
+		const leftGradient = new Instance("UIGradient");
+		leftGradient.Transparency = TRANSPARENCY_SEQUENCE;
+		leftGradient.Offset = new Vector2(0.5, 0);
+		leftGradient.Rotation = 0;
+
+		const rightGradient = new Instance("UIGradient");
+		rightGradient.Transparency = TRANSPARENCY_SEQUENCE;
+		rightGradient.Offset = new Vector2(-0.5, 0);
+		rightGradient.Rotation = -180;
+		// #endregion
+
+		// #region Parent all instances to the folder.
+		leftGradient.Parent = left;
+		rightGradient.Parent = right;
+		left.Parent = folder;
+		right.Parent = folder;
+		// #endregion
+
+		this.Object = folder;
+	}
+
+	Init(object: GuiObject | undefined) {
+		this.Object.Parent = object;
 	}
 
 	Play() {
-		if (this.ReplayWhileActive === false && this.RemainingCooldown > 0 && this.RemainingCooldown < this.Cooldown)
-			return;
-
-		// #region
-		// First reset all frames and values.
-		this.RemainingCooldown = this.Cooldown;
-		this.Frame.Visible = true;
-
-		for (const object of this.Frame.GetDescendants()) {
-			if (object.IsA("Frame") === true) object.Visible = true;
-			else if (object.IsA("UIGradient") === true)
-				object.Rotation = object.GetAttribute("StartRotation") as number;
-		}
-		// #endregion
-
-		// #region
-		// Then play the cooldown.
-		this.Frame.Visible = true;
-		this._CooldownObject.Value = this.RemainingCooldown;
+		// #region Play the cooldown.
+		this.Object.SetAttribute("Visible", true);
+		this._CooldownObject.Value = this.RemainingDuration;
 
 		if (this._Tween !== undefined) this._Tween.Destroy();
-
 		this._Tween = TweenService.Create(
 			this._CooldownObject,
 			new TweenInfo(
-				this.RemainingCooldown / this.Rate,
+				this.RemainingDuration / this.Rate,
 				Enum.EasingStyle.Linear,
 				Enum.EasingDirection.InOut,
 				0,
@@ -125,83 +136,25 @@ export class CircularCooldown {
 		this._Tween.Play();
 		// #endregion
 
-		// #region
-		// Then toggle the halves based on the remaining cooldown duration.
-		for (let i = 0; i <= 1; i++) {
-			const frame = this.Frame.FindFirstChild(tostring(i)) as Frame;
-
-			if (frame !== undefined) frame.Visible = false;
-		}
-
-		for (let i = math.ceil(mathv.normalize(this._CooldownObject.Value, 0, this.Cooldown) * 1); i >= 1; i--) {
-			const frame = this.Frame.FindFirstChild(tostring(i)) as Frame;
-
-			if (frame !== undefined) frame.Visible = true;
-		}
-		// #endregion
-
-		// #region
-		// Then count down the cooldown.
-		if (this._Connection !== undefined) this._Connection.Disconnect();
-
-		this._Connection = this._CooldownObject.Changed.Connect(() => {
-			this.RemainingCooldown = this._CooldownObject.Value;
-			this._ChangeEvent.Fire(this._CooldownObject.Value);
-
-			const index = math.clamp(
-				math.ceil(mathv.normalize(this._CooldownObject.Value, 0, this.Cooldown) * 2),
-				1,
-				2,
-			);
-			const gradient = this.Frame.FindFirstChild(tostring(index))
-				?.FindFirstChild("Shade")
-				?.FindFirstChild("UIGradient") as UIGradient;
-
-			gradient.Rotation = mathv.lerp(
-				gradient.GetAttribute("EndRotation") as number,
-				gradient.GetAttribute("StartRotation") as number,
-				mathv.normalize(
-					this._CooldownObject.Value,
-					(this.Cooldown / 2) * (index - 1),
-					(this.Cooldown / 2) * index,
-				),
-			);
-
-			for (let i = index + 1; i <= 2; i++) {
-				const frame = this.Frame.FindFirstChild(tostring(i)) as Frame;
-
-				if (frame !== undefined) frame.Visible = false;
-			}
-		});
-		// #endregion
-
-		// #region
-		// Finally fire completion events and Destroy connections when complete.
+		// #region Finally fire completion events and Destroy connections when complete.
 		this._Tween.Completed.Connect(() => {
-			const one = this.Frame.FindFirstChild("1") as Frame;
-			const two = this.Frame.FindFirstChild("2") as Frame;
-
-			if (one !== undefined) one.Visible = false;
-
-			if (two !== undefined) two.Visible = false;
-
 			this._CompleteEvent.Fire();
 
 			if (this._Tween !== undefined) this._Tween.Destroy();
-
-			if (this._Connection !== undefined) this._Connection.Disconnect();
 		});
 		// #endregion
 	}
 
 	Pause() {
-		if (this._Tween !== undefined) this._Tween.Pause();
+		if (this._Tween === undefined) return;
+
+		this._Tween.Pause();
 	}
 
 	Cancel() {
-		if (this._Tween !== undefined) {
-			this._Tween.Cancel();
-			this.RemainingCooldown = this.Cooldown;
-		}
+		if (this._Tween === undefined) return;
+
+		this._Tween.Cancel();
+		this.RemainingDuration = this.Duration;
 	}
 }

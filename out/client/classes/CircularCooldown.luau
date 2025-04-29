@@ -1,205 +1,137 @@
 -- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mathv = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "generics", "mathv")
 local TweenService = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "services").TweenService
-local IMAGE_POSITIONS = { UDim2.fromScale(0, 0), UDim2.fromScale(-1, 0) }
-local DEFAULT_SHOW_ON_DEFAULT = false
-local DEFAULT_COLOR = Color3.fromRGB(172, 172, 172)
-local DEFAULT_TRANSPARENCY = 0
-local CircularCooldown
+local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
+local TRANSPARENCY_SEQUENCE = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(0.501, 1), NumberSequenceKeypoint.new(1, 1) })
+local dCircularCooldown
 do
-	CircularCooldown = setmetatable({}, {
+	local super = BaseApexObject
+	dCircularCooldown = setmetatable({}, {
 		__tostring = function()
-			return "CircularCooldown"
+			return "dCircularCooldown"
 		end,
+		__index = super,
 	})
-	CircularCooldown.__index = CircularCooldown
-	function CircularCooldown.new(...)
-		local self = setmetatable({}, CircularCooldown)
+	dCircularCooldown.__index = dCircularCooldown
+	function dCircularCooldown.new(...)
+		local self = setmetatable({}, dCircularCooldown)
 		return self:constructor(...) or self
 	end
-	function CircularCooldown:constructor(gui, cd, rate, playWhileActive, showOnCreation, color, transparency)
+	function dCircularCooldown:constructor()
+		super.constructor(self, "CircularCooldown")
 		self._CooldownObject = Instance.new("NumberValue")
-		self._ChangeEvent = Instance.new("BindableEvent")
 		self._CompleteEvent = Instance.new("BindableEvent")
-		self._Connection = nil
+		self._ChangeEvent = Instance.new("BindableEvent")
 		self._Tween = nil
-		self.Changed = self._ChangeEvent.Event
 		self.Completed = self._CompleteEvent.Event
+		self.Changed = self._ChangeEvent.Event
+		self.RemainingDuration = 1
+		self.Duration = 1
+		self.Rate = 1
 		local folder = Instance.new("Folder")
 		folder.Name = "CircularCooldown"
-		local mainFrame = Instance.new("Frame")
-		mainFrame.BackgroundTransparency = 1
-		mainFrame.Visible = showOnCreation or DEFAULT_SHOW_ON_DEFAULT
-		mainFrame.Size = UDim2.fromScale(1, 1)
-		for i = 1, 0, -1 do
-			local frame = Instance.new("Frame")
-			frame.Name = tostring(i)
-			frame.ClipsDescendants = true
-			frame.BackgroundTransparency = 1
-			frame.Position = UDim2.fromScale(i - 1, 0)
-			frame.AnchorPoint = Vector2.new(i - 1, 0)
-			frame.Visible = showOnCreation or DEFAULT_SHOW_ON_DEFAULT
-			frame.Size = UDim2.fromScale(0.5, 1)
-			local image = Instance.new("ImageLabel")
-			image.Name = "Shade"
-			image.BackgroundTransparency = 1
-			image.Image = "rbxassetid://15478839340"
-			image.ImageColor3 = color or DEFAULT_COLOR
-			local _condition = transparency
-			if not (_condition ~= 0 and _condition == _condition and _condition) then
-				_condition = DEFAULT_TRANSPARENCY
-			end
-			image.ImageTransparency = _condition
-			image.Size = UDim2.fromScale(2, 1)
-			image.Position = IMAGE_POSITIONS[i + 1]
-			local gradient = Instance.new("UIGradient")
-			gradient.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(0.501, 1), NumberSequenceKeypoint.new(1, 1) })
-			gradient.Rotation = 180 * (i - 1)
-			gradient:SetAttribute("StartRotation", 180 * (i - 1))
-			gradient:SetAttribute("EndRotation", 180 * (i - 1) + 180)
-			gradient.Parent = image
-			image.Parent = frame
-			frame.Parent = mainFrame
-		end
-		mainFrame.Parent = folder
-		folder.Parent = gui
-		self.Frame = mainFrame
-		self.RemainingCooldown = cd
-		self.Cooldown = cd
-		local _condition = rate
-		if not (_condition ~= 0 and _condition == _condition and _condition) then
-			_condition = 1
-		end
-		self.Rate = _condition
-		self.ReplayWhileActive = playWhileActive or false
-	end
-	function CircularCooldown:Play()
-		if self.ReplayWhileActive == false and self.RemainingCooldown > 0 and self.RemainingCooldown < self.Cooldown then
-			return nil
-		end
-		-- #region
-		-- First reset all frames and values.
-		self.RemainingCooldown = self.Cooldown
-		self.Frame.Visible = true
-		for _, object in self.Frame:GetDescendants() do
-			if object:IsA("Frame") == true then
-				object.Visible = true
-			elseif object:IsA("UIGradient") == true then
-				object.Rotation = object:GetAttribute("StartRotation")
-			end
-		end
+		folder:SetAttribute("Color", Color3.new(1, 1, 1))
+		folder:SetAttribute("Transparency", 0)
+		folder:SetAttribute("Visible", true)
+		folder:SetAttribute("ZIndex", 1)
+		folder:GetAttributeChangedSignal("Color"):Connect(function()
+			local val = folder:GetAttribute("Color");
+			(folder:FindFirstChild("Left")).ImageColor3 = val;
+			(folder:FindFirstChild("Right")).ImageColor3 = val
+		end)
+		folder:GetAttributeChangedSignal("Transparency"):Connect(function()
+			local val = folder:GetAttribute("Transparency");
+			(folder:FindFirstChild("Left")).ImageTransparency = val;
+			(folder:FindFirstChild("Right")).ImageTransparency = val
+		end)
+		folder:GetAttributeChangedSignal("Visible"):Connect(function()
+			local val = folder:GetAttribute("Visible");
+			(folder:FindFirstChild("Left")).Visible = val;
+			(folder:FindFirstChild("Right")).Visible = val
+		end)
+		folder:GetAttributeChangedSignal("ZIndex"):Connect(function()
+			local val = folder:GetAttribute("ZIndex");
+			(folder:FindFirstChild("Left")).ZIndex = val;
+			(folder:FindFirstChild("Right")).ZIndex = val
+		end)
+		-- #region Init
+		self._CooldownObject.Changed:Connect(function()
+			self._ChangeEvent:Fire()
+			-- FLAG: implement circular spinny logic here
+		end)
 		-- #endregion
-		-- #region
-		-- Then play the cooldown.
-		self.Frame.Visible = true
-		self._CooldownObject.Value = self.RemainingCooldown
+		-- #region Create the semicircle images.
+		local left = Instance.new("ImageLabel")
+		left.BackgroundTransparency = 1
+		left.AnchorPoint = Vector2.new(0, 0.5)
+		left.Position = UDim2.new(0, 0, 0.5, 0)
+		left.Size = UDim2.new(0.5, 0, 1, 0)
+		left.Image = "rbxassetid://134149598090509"
+		left.ClipsDescendants = true
+		local right = Instance.new("ImageLabel")
+		right.BackgroundTransparency = 1
+		right.AnchorPoint = Vector2.new(1, 0.5)
+		right.Position = UDim2.new(1, 0, 0.5, 0)
+		right.Size = UDim2.new(0.5, 0, 1, 0)
+		right.Image = "rbxassetid://132382211808404"
+		right.ClipsDescendants = true
+		-- #endregion
+		-- #region Create the gradients.
+		local leftGradient = Instance.new("UIGradient")
+		leftGradient.Transparency = TRANSPARENCY_SEQUENCE
+		leftGradient.Offset = Vector2.new(0.5, 0)
+		leftGradient.Rotation = 0
+		local rightGradient = Instance.new("UIGradient")
+		rightGradient.Transparency = TRANSPARENCY_SEQUENCE
+		rightGradient.Offset = Vector2.new(-0.5, 0)
+		rightGradient.Rotation = -180
+		-- #endregion
+		-- #region Parent all instances to the folder.
+		leftGradient.Parent = left
+		rightGradient.Parent = right
+		left.Parent = folder
+		right.Parent = folder
+		-- #endregion
+		self.Object = folder
+	end
+	function dCircularCooldown:Init(object)
+		self.Object.Parent = object
+	end
+	function dCircularCooldown:Play()
+		-- #region Play the cooldown.
+		self.Object:SetAttribute("Visible", true)
+		self._CooldownObject.Value = self.RemainingDuration
 		if self._Tween ~= nil then
 			self._Tween:Destroy()
 		end
-		self._Tween = TweenService:Create(self._CooldownObject, TweenInfo.new(self.RemainingCooldown / self.Rate, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0), {
+		self._Tween = TweenService:Create(self._CooldownObject, TweenInfo.new(self.RemainingDuration / self.Rate, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0), {
 			Value = 0,
 		})
 		self._Tween:Play()
 		-- #endregion
-		-- #region
-		-- Then toggle the halves based on the remaining cooldown duration.
-		for i = 0, 1 do
-			local frame = self.Frame:FindFirstChild(tostring(i))
-			if frame ~= nil then
-				frame.Visible = false
-			end
-		end
-		do
-			local i = math.ceil(mathv.normalize(self._CooldownObject.Value, 0, self.Cooldown) * 1)
-			local _shouldIncrement = false
-			while true do
-				if _shouldIncrement then
-					i -= 1
-				else
-					_shouldIncrement = true
-				end
-				if not (i >= 1) then
-					break
-				end
-				local frame = self.Frame:FindFirstChild(tostring(i))
-				if frame ~= nil then
-					frame.Visible = true
-				end
-			end
-		end
-		-- #endregion
-		-- #region
-		-- Then count down the cooldown.
-		if self._Connection ~= nil then
-			self._Connection:Disconnect()
-		end
-		self._Connection = self._CooldownObject.Changed:Connect(function()
-			self.RemainingCooldown = self._CooldownObject.Value
-			self._ChangeEvent:Fire(self._CooldownObject.Value)
-			local index = math.clamp(math.ceil(mathv.normalize(self._CooldownObject.Value, 0, self.Cooldown) * 2), 1, 2)
-			local _result = self.Frame:FindFirstChild(tostring(index))
-			if _result ~= nil then
-				_result = _result:FindFirstChild("Shade")
-				if _result ~= nil then
-					_result = _result:FindFirstChild("UIGradient")
-				end
-			end
-			local gradient = _result
-			gradient.Rotation = mathv.lerp(gradient:GetAttribute("EndRotation"), gradient:GetAttribute("StartRotation"), mathv.normalize(self._CooldownObject.Value, (self.Cooldown / 2) * (index - 1), (self.Cooldown / 2) * index))
-			do
-				local i = index + 1
-				local _shouldIncrement = false
-				while true do
-					if _shouldIncrement then
-						i += 1
-					else
-						_shouldIncrement = true
-					end
-					if not (i <= 2) then
-						break
-					end
-					local frame = self.Frame:FindFirstChild(tostring(i))
-					if frame ~= nil then
-						frame.Visible = false
-					end
-				end
-			end
-		end)
-		-- #endregion
-		-- #region
-		-- Finally fire completion events and Destroy connections when complete.
+		-- #region Finally fire completion events and Destroy connections when complete.
 		self._Tween.Completed:Connect(function()
-			local one = self.Frame:FindFirstChild("1")
-			local two = self.Frame:FindFirstChild("2")
-			if one ~= nil then
-				one.Visible = false
-			end
-			if two ~= nil then
-				two.Visible = false
-			end
 			self._CompleteEvent:Fire()
 			if self._Tween ~= nil then
 				self._Tween:Destroy()
 			end
-			if self._Connection ~= nil then
-				self._Connection:Disconnect()
-			end
 		end)
 		-- #endregion
 	end
-	function CircularCooldown:Pause()
-		if self._Tween ~= nil then
-			self._Tween:Pause()
+	function dCircularCooldown:Pause()
+		if self._Tween == nil then
+			return nil
 		end
+		self._Tween:Pause()
 	end
-	function CircularCooldown:Cancel()
-		if self._Tween ~= nil then
-			self._Tween:Cancel()
-			self.RemainingCooldown = self.Cooldown
+	function dCircularCooldown:Cancel()
+		if self._Tween == nil then
+			return nil
 		end
+		self._Tween:Cancel()
+		self.RemainingDuration = self.Duration
 	end
 end
 return {
-	CircularCooldown = CircularCooldown,
+	dCircularCooldown = dCircularCooldown,
 }

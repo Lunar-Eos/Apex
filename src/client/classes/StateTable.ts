@@ -1,9 +1,13 @@
-export class dStateTable {
-	_Callbacks: { [name: string]: (old: unknown, next: unknown) => undefined } = {};
+import { BaseApexObject } from "../internals/BaseApexObject";
+
+export class dStateTable extends BaseApexObject {
+	_Callbacks: { [name: string]: (old: unknown, next: unknown) => void } = {};
 
 	Value: { [name: string]: unknown } = {};
 
-	constructor() {}
+	constructor() {
+		super("StateTable");
+	}
 
 	Get(key: string) {
 		return this.Value[key];
@@ -29,7 +33,7 @@ export class dStateTable {
 		}
 	}
 
-	BindOnChange(name: string, callback: (old: unknown, next: unknown) => undefined) {
+	BindOnChange(name: string, callback: (old: unknown, next: unknown) => void) {
 		this._Callbacks[name] = callback;
 	}
 

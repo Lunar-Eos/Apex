@@ -1,10 +1,14 @@
 -- Compiled with roblox-ts v3.0.0
+local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
 local dStateTable
 do
+	local super = BaseApexObject
 	dStateTable = setmetatable({}, {
 		__tostring = function()
 			return "dStateTable"
 		end,
+		__index = super,
 	})
 	dStateTable.__index = dStateTable
 	function dStateTable.new(...)
@@ -12,6 +16,7 @@ do
 		return self:constructor(...) or self
 	end
 	function dStateTable:constructor()
+		super.constructor(self, "StateTable")
 		self._Callbacks = {}
 		self.Value = {}
 	end

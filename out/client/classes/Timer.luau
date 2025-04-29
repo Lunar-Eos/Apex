@@ -2,21 +2,21 @@
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local RunService = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "services").RunService
 local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
-local Timer
+local dTimer
 do
 	local super = BaseApexObject
-	Timer = setmetatable({}, {
+	dTimer = setmetatable({}, {
 		__tostring = function()
-			return "Timer"
+			return "dTimer"
 		end,
 		__index = super,
 	})
-	Timer.__index = Timer
-	function Timer.new(...)
-		local self = setmetatable({}, Timer)
+	dTimer.__index = dTimer
+	function dTimer.new(...)
+		local self = setmetatable({}, dTimer)
 		return self:constructor(...) or self
 	end
-	function Timer:constructor(seconds, scale)
+	function dTimer:constructor()
 		super.constructor(self, "Timer")
 		self._CountThread = nil
 		self._ChangeFunction = function() end
@@ -25,11 +25,8 @@ do
 		self._SecondsLeft = 0
 		self.TimeScale = 1
 		self.Seconds = 0
-		self._SecondsLeft = seconds
-		self.TimeScale = scale
-		self.Seconds = seconds
 	end
-	function Timer:CompareTimes(object)
+	function dTimer:CompareTimes(object)
 		return function(delta)
 			object._ChangeFunction()
 			object._SecondsLeft = math.clamp(object._SecondsLeft - delta * object.TimeScale, 0, object.Seconds)
@@ -40,35 +37,35 @@ do
 			(object._CountThread):Disconnect()
 		end
 	end
-	function Timer:Start()
+	function dTimer:Start()
 		self._SecondsLeft = self.Seconds
 		self._CountThread = RunService.Heartbeat:Connect(self:CompareTimes(self))
 	end
-	function Timer:Resume()
+	function dTimer:Resume()
 		self._CountThread = RunService.Heartbeat:Connect(self:CompareTimes(self))
 	end
-	function Timer:Pause()
+	function dTimer:Pause()
 		self._InterruptFunction();
 		(self._CountThread):Disconnect()
 	end
-	function Timer:Stop()
+	function dTimer:Stop()
 		self._InterruptFunction();
 		(self._CountThread):Disconnect()
 		self._SecondsLeft = self.Seconds
 	end
-	function Timer:GetRemaining()
+	function dTimer:GetRemaining()
 		return self._SecondsLeft
 	end
-	function Timer:BindToChanged(callback)
+	function dTimer:BindToChanged(callback)
 		self._ChangeFunction = callback
 	end
-	function Timer:BindToCompleted(callback)
+	function dTimer:BindToCompleted(callback)
 		self._EndFunction = callback
 	end
-	function Timer:BindToInterrupted(callback)
+	function dTimer:BindToInterrupted(callback)
 		self._InterruptFunction = callback
 	end
 end
 return {
-	Timer = Timer,
+	dTimer = dTimer,
 }

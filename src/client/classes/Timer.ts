@@ -1,7 +1,7 @@
 import { RunService } from "@rbxts/services";
 import { BaseApexObject } from "../internals/BaseApexObject";
 
-export class Timer extends BaseApexObject {
+export class dTimer extends BaseApexObject {
 	private _CountThread: RBXScriptConnection | undefined = undefined;
 	private _ChangeFunction: () => void = () => {};
 	private _EndFunction: () => void = () => {};
@@ -12,7 +12,7 @@ export class Timer extends BaseApexObject {
 	public TimeScale = 1;
 	public Seconds = 0;
 
-	private CompareTimes(object: Timer) {
+	private CompareTimes(object: dTimer) {
 		return function (delta: number) {
 			object._ChangeFunction();
 
@@ -24,13 +24,8 @@ export class Timer extends BaseApexObject {
 		};
 	}
 
-	constructor(seconds: number, scale: number) {
+	constructor() {
 		super("Timer");
-
-		this._SecondsLeft = seconds;
-
-		this.TimeScale = scale;
-		this.Seconds = seconds;
 	}
 
 	Start() {

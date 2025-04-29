@@ -1,7 +1,7 @@
 import { BaseApexObject } from "../internals/BaseApexObject";
 
 export class dState extends BaseApexObject {
-	_Callbacks: { [name: string]: (old: unknown, next: unknown) => undefined } = {};
+	_Callbacks: { [name: string]: (old: unknown, next: unknown) => void } = {};
 
 	Value: unknown = 0;
 
@@ -9,7 +9,7 @@ export class dState extends BaseApexObject {
 		super("State");
 	}
 
-	Get(this: dState) {
+	Get() {
 		return this.Value;
 	}
 
@@ -33,7 +33,7 @@ export class dState extends BaseApexObject {
 		}
 	}
 
-	BindOnChange(name: string, callback: (old: unknown, next: unknown) => undefined) {
+	BindOnChange(name: string, callback: (old: unknown, next: unknown) => void) {
 		this._Callbacks[name] = callback;
 	}
 
