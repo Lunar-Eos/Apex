@@ -2,8 +2,9 @@
 local BaseApexObject
 do
 	BaseApexObject = {}
-	function BaseApexObject:constructor()
+	function BaseApexObject:constructor(className)
 		self.ClassName = ""
+		self.ClassName = className
 	end
 	function BaseApexObject:Destroy()
 		for k, v in pairs(self) do

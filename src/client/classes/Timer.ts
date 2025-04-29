@@ -3,9 +3,9 @@ import { BaseApexObject } from "../internals/BaseApexObject";
 
 export class Timer extends BaseApexObject {
 	private _CountThread: RBXScriptConnection | undefined = undefined;
-	private _ChangeFunction: () => undefined = () => {};
-	private _EndFunction: () => undefined = () => {};
-	private _InterruptFunction: () => undefined = () => {};
+	private _ChangeFunction: () => void = () => {};
+	private _EndFunction: () => void = () => {};
+	private _InterruptFunction: () => void = () => {};
 
 	private _SecondsLeft = 0;
 
@@ -25,7 +25,7 @@ export class Timer extends BaseApexObject {
 	}
 
 	constructor(seconds: number, scale: number) {
-		super();
+		super("Timer");
 
 		this._SecondsLeft = seconds;
 
@@ -59,15 +59,15 @@ export class Timer extends BaseApexObject {
 		return this._SecondsLeft;
 	}
 
-	BindToChanged(callback: () => undefined) {
+	BindToChanged(callback: () => void) {
 		this._ChangeFunction = callback;
 	}
 
-	BindToCompleted(callback: () => undefined) {
+	BindToCompleted(callback: () => void) {
 		this._EndFunction = callback;
 	}
 
-	BindToInterrupted(callback: () => undefined) {
+	BindToInterrupted(callback: () => void) {
 		this._InterruptFunction = callback;
 	}
 }

@@ -1,6 +1,10 @@
 export abstract class BaseApexObject {
 	public ClassName: string = "";
 
+	constructor(className: string) {
+		this.ClassName = className;
+	}
+
 	Destroy() {
 		for (const [k, v] of pairs(this)) {
 			const t = typeOf(this[k as keyof this]);

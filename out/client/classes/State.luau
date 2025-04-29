@@ -1,29 +1,29 @@
 -- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
-local State
+local dState
 do
 	local super = BaseApexObject
-	State = setmetatable({}, {
+	dState = setmetatable({}, {
 		__tostring = function()
-			return "State"
+			return "dState"
 		end,
 		__index = super,
 	})
-	State.__index = State
-	function State.new(...)
-		local self = setmetatable({}, State)
+	dState.__index = dState
+	function dState.new(...)
+		local self = setmetatable({}, dState)
 		return self:constructor(...) or self
 	end
-	function State:constructor()
-		super.constructor(self)
+	function dState:constructor()
+		super.constructor(self, "State")
 		self._Callbacks = {}
 		self.Value = 0
 	end
-	function State:Get()
+	function dState:Get()
 		return self.Value
 	end
-	function State:Set(a)
+	function dState:Set(a)
 		if a == self.Value then
 			return nil
 		end
@@ -33,20 +33,20 @@ do
 			callback(prev, self.Value)
 		end
 	end
-	function State:Update(fn)
+	function dState:Update(fn)
 		local prev = self.Value
 		self.Value = fn(self.Value)
 		for _, callback in pairs(self._Callbacks) do
 			callback(prev, self.Value)
 		end
 	end
-	function State:BindOnChange(name, callback)
+	function dState:BindOnChange(name, callback)
 		self._Callbacks[name] = callback
 	end
-	function State:UnbindOnChange(name)
+	function dState:UnbindOnChange(name)
 		self._Callbacks[name] = nil
 	end
 end
 return {
-	State = State,
+	dState = dState,
 }
