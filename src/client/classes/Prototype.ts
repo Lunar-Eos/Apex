@@ -2,6 +2,7 @@ import { dState } from "./State";
 import { dCircularCooldown } from "./CircularCooldown";
 import { dStateTable } from "./StateTable";
 import { dTimer } from "./Timer";
+import { dRadialCooldown } from "./RadialCooldown";
 
 export class Prototype {
 	constructor(className: ClassNames) {
@@ -18,6 +19,10 @@ export class Prototype {
 				return new dCircularCooldown();
 			}
 
+			case "RadialCooldown": {
+				return new dRadialCooldown();
+			}
+
 			case "Timer": {
 				return new dTimer();
 			}
@@ -29,7 +34,7 @@ export class Prototype {
 	}
 }
 
-type ClassNames = "State" | "StateTable" | "Timer" | "CircularCooldown";
+type ClassNames = "State" | "StateTable" | "Timer" | "CircularCooldown" | "RadialCooldown";
 
 export interface State {
 	_Callbacks: { [name: string]: (old: unknown, next: unknown) => void };
@@ -105,6 +110,33 @@ export interface CircularCooldown {
 
 	Init(object: GuiObject | undefined): void;
 	Play(): void;
+	Resume(): void;
+	Pause(): void;
+	Cancel(): void;
+	Destroy(): void;
+}
+export interface RadialCooldown {
+	_CooldownObject: NumberValue;
+
+	_CompleteEvent: BindableEvent;
+	_ChangeEvent: BindableEvent;
+
+	_Tween: Tween | undefined;
+
+	Completed: RBXScriptSignal;
+	Changed: RBXScriptSignal;
+
+	Object: Folder;
+
+	RemainingDuration: number;
+	Duration: number;
+	Rate: number;
+
+	ClassName: string;
+
+	Init(object: GuiObject | undefined): void;
+	Play(): void;
+	Resume(): void;
 	Pause(): void;
 	Cancel(): void;
 	Destroy(): void;

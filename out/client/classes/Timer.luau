@@ -2,6 +2,17 @@
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local RunService = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "services").RunService
 local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
+local function compareTimes(object)
+	return function(delta)
+		object._ChangeFunction()
+		object._SecondsLeft = math.clamp(object._SecondsLeft - delta * object.TimeScale, 0, object.Seconds)
+		if object._SecondsLeft > 0 then
+			return nil
+		end
+		object._EndFunction();
+		(object._CountThread):Disconnect()
+	end
+end
 local dTimer
 do
 	local super = BaseApexObject
@@ -26,23 +37,12 @@ do
 		self.TimeScale = 1
 		self.Seconds = 0
 	end
-	function dTimer:CompareTimes(object)
-		return function(delta)
-			object._ChangeFunction()
-			object._SecondsLeft = math.clamp(object._SecondsLeft - delta * object.TimeScale, 0, object.Seconds)
-			if object._SecondsLeft > 0 then
-				return nil
-			end
-			object._EndFunction();
-			(object._CountThread):Disconnect()
-		end
-	end
 	function dTimer:Start()
 		self._SecondsLeft = self.Seconds
-		self._CountThread = RunService.Heartbeat:Connect(self:CompareTimes(self))
+		self._CountThread = RunService.Heartbeat:Connect(compareTimes(self))
 	end
 	function dTimer:Resume()
-		self._CountThread = RunService.Heartbeat:Connect(self:CompareTimes(self))
+		self._CountThread = RunService.Heartbeat:Connect(compareTimes(self))
 	end
 	function dTimer:Pause()
 		self._InterruptFunction();

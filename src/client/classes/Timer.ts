@@ -1,28 +1,28 @@
 import { RunService } from "@rbxts/services";
 import { BaseApexObject } from "../internals/BaseApexObject";
 
+function compareTimes(object: dTimer) {
+	return function (delta: number) {
+		object._ChangeFunction();
+
+		object._SecondsLeft = math.clamp(object._SecondsLeft - delta * object.TimeScale, 0, object.Seconds);
+		if (object._SecondsLeft > 0) return;
+
+		object._EndFunction();
+		(object._CountThread as RBXScriptConnection).Disconnect();
+	};
+}
+
 export class dTimer extends BaseApexObject {
-	private _CountThread: RBXScriptConnection | undefined = undefined;
-	private _ChangeFunction: () => void = () => {};
-	private _EndFunction: () => void = () => {};
-	private _InterruptFunction: () => void = () => {};
+	_CountThread: RBXScriptConnection | undefined = undefined;
+	_ChangeFunction: () => void = () => {};
+	_EndFunction: () => void = () => {};
+	_InterruptFunction: () => void = () => {};
 
-	private _SecondsLeft = 0;
+	_SecondsLeft = 0;
 
-	public TimeScale = 1;
-	public Seconds = 0;
-
-	private CompareTimes(object: dTimer) {
-		return function (delta: number) {
-			object._ChangeFunction();
-
-			object._SecondsLeft = math.clamp(object._SecondsLeft - delta * object.TimeScale, 0, object.Seconds);
-			if (object._SecondsLeft > 0) return;
-
-			object._EndFunction();
-			(object._CountThread as RBXScriptConnection).Disconnect();
-		};
-	}
+	TimeScale = 1;
+	Seconds = 0;
 
 	constructor() {
 		super("Timer");
@@ -31,11 +31,11 @@ export class dTimer extends BaseApexObject {
 	Start() {
 		this._SecondsLeft = this.Seconds;
 
-		this._CountThread = RunService.Heartbeat.Connect(this.CompareTimes(this));
+		this._CountThread = RunService.Heartbeat.Connect(compareTimes(this));
 	}
 
 	Resume() {
-		this._CountThread = RunService.Heartbeat.Connect(this.CompareTimes(this));
+		this._CountThread = RunService.Heartbeat.Connect(compareTimes(this));
 	}
 
 	Pause() {

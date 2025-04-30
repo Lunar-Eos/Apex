@@ -4,6 +4,7 @@ local dState = TS.import(script, game:GetService("ReplicatedStorage"), "Imports"
 local dCircularCooldown = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "CircularCooldown").dCircularCooldown
 local dStateTable = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "StateTable").dStateTable
 local dTimer = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "Timer").dTimer
+local dRadialCooldown = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "RadialCooldown").dRadialCooldown
 local Prototype
 do
 	Prototype = setmetatable({}, {
@@ -26,6 +27,9 @@ do
 			end
 			if className == "CircularCooldown" then
 				return dCircularCooldown.new()
+			end
+			if className == "RadialCooldown" then
+				return dRadialCooldown.new()
 			end
 			if className == "Timer" then
 				return dTimer.new()
