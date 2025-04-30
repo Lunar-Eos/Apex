@@ -1,5 +1,6 @@
 import { TweenService } from "@rbxts/services";
 import { BaseApexObject } from "../internals/BaseApexObject";
+import mathv from "../generics/mathv";
 
 const TRANSPARENCY_SEQUENCE = new NumberSequence([
 	new NumberSequenceKeypoint(0, 0),
@@ -8,22 +9,45 @@ const TRANSPARENCY_SEQUENCE = new NumberSequence([
 	new NumberSequenceKeypoint(1, 1),
 ]);
 
+function playCooldown(obj: dCircularCooldown) {
+	if (obj._Tween !== undefined) obj._Tween.Destroy();
+	obj._Tween = TweenService.Create(
+		obj._CooldownObject,
+		new TweenInfo(
+			obj.RemainingDuration / obj.Rate,
+			Enum.EasingStyle.Linear,
+			Enum.EasingDirection.InOut,
+			0,
+			false,
+			0,
+		),
+		{ Value: 0 },
+	);
+	obj._Tween.Play();
+
+	obj._Tween.Completed.Connect(() => {
+		obj._CompleteEvent.Fire();
+
+		if (obj._Tween !== undefined) obj._Tween.Destroy();
+	});
+}
+
 export class dCircularCooldown extends BaseApexObject {
-	private _CooldownObject: NumberValue = new Instance("NumberValue");
+	_CooldownObject: NumberValue = new Instance("NumberValue");
 
-	private _CompleteEvent: BindableEvent = new Instance("BindableEvent");
-	private _ChangeEvent: BindableEvent = new Instance("BindableEvent");
+	_CompleteEvent: BindableEvent = new Instance("BindableEvent");
+	_ChangeEvent: BindableEvent = new Instance("BindableEvent");
 
-	private _Tween: Tween | undefined = undefined;
+	_Tween: Tween | undefined = undefined;
 
 	readonly Completed: RBXScriptSignal = this._CompleteEvent.Event;
 	readonly Changed: RBXScriptSignal = this._ChangeEvent.Event;
 
-	public Object: Folder;
+	Object: Folder;
 
-	public RemainingDuration: number = 1;
-	public Duration: number = 1;
-	public Rate: number = 1;
+	RemainingDuration: number = 1;
+	Duration: number = 1;
+	Rate: number = 1;
 
 	constructor() {
 		super("CircularCooldown");
@@ -63,14 +87,6 @@ export class dCircularCooldown extends BaseApexObject {
 			(folder.FindFirstChild("Right") as ImageLabel).ZIndex = val;
 		});
 
-		// #region Init
-		this._CooldownObject.Changed.Connect(() => {
-			this._ChangeEvent.Fire();
-
-			// FLAG: implement circular spinny logic here
-		});
-		// #endregion
-
 		// #region Create the semicircle images.
 		const left = new Instance("ImageLabel");
 		left.BackgroundTransparency = 1;
@@ -93,12 +109,12 @@ export class dCircularCooldown extends BaseApexObject {
 		const leftGradient = new Instance("UIGradient");
 		leftGradient.Transparency = TRANSPARENCY_SEQUENCE;
 		leftGradient.Offset = new Vector2(0.5, 0);
-		leftGradient.Rotation = 0;
+		leftGradient.Rotation = 0; // range: 0 to 180
 
 		const rightGradient = new Instance("UIGradient");
 		rightGradient.Transparency = TRANSPARENCY_SEQUENCE;
 		rightGradient.Offset = new Vector2(-0.5, 0);
-		rightGradient.Rotation = -180;
+		rightGradient.Rotation = -180; // range: -180 to 0
 		// #endregion
 
 		// #region Parent all instances to the folder.
@@ -106,6 +122,30 @@ export class dCircularCooldown extends BaseApexObject {
 		rightGradient.Parent = right;
 		left.Parent = folder;
 		right.Parent = folder;
+		// #endregion
+
+		// #region Connect changed event to the internal countdown object.
+		this._CooldownObject.Changed.Connect(() => {
+			this._ChangeEvent.Fire();
+
+			this.RemainingDuration = this._CooldownObject.Value;
+
+			if (this.RemainingDuration > this.Duration / 2) {
+				leftGradient.Rotation = 0;
+
+				const norm = mathv.normalize(this.RemainingDuration, this.Duration / 2, this.Duration);
+				const rotation = mathv.lerp(0, -180, norm);
+
+				rightGradient.Rotation = rotation;
+			} else {
+				rightGradient.Rotation = 0;
+
+				const norm = mathv.normalize(this.RemainingDuration, 0, this.Duration / 2);
+				const rotation = mathv.lerp(180, 0, norm);
+
+				leftGradient.Rotation = rotation;
+			}
+		});
 		// #endregion
 
 		this.Object = folder;
@@ -116,33 +156,18 @@ export class dCircularCooldown extends BaseApexObject {
 	}
 
 	Play() {
-		// #region Play the cooldown.
+		this.RemainingDuration = this.Duration;
 		this.Object.SetAttribute("Visible", true);
 		this._CooldownObject.Value = this.RemainingDuration;
 
-		if (this._Tween !== undefined) this._Tween.Destroy();
-		this._Tween = TweenService.Create(
-			this._CooldownObject,
-			new TweenInfo(
-				this.RemainingDuration / this.Rate,
-				Enum.EasingStyle.Linear,
-				Enum.EasingDirection.InOut,
-				0,
-				false,
-				0,
-			),
-			{ Value: 0 },
-		);
-		this._Tween.Play();
-		// #endregion
+		playCooldown(this);
+	}
 
-		// #region Finally fire completion events and Destroy connections when complete.
-		this._Tween.Completed.Connect(() => {
-			this._CompleteEvent.Fire();
+	Resume() {
+		this.Object.SetAttribute("Visible", true);
+		this._CooldownObject.Value = this.RemainingDuration;
 
-			if (this._Tween !== undefined) this._Tween.Destroy();
-		});
-		// #endregion
+		playCooldown(this);
 	}
 
 	Pause() {

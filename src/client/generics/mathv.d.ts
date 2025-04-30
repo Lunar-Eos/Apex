@@ -12,6 +12,7 @@ interface mathv {
 	swap: (a: number, b: number) => LuaTuple<[number, number]>;
 	lerp: (a: number, b: number, t: number) => number;
 	normalize: (x: number, min: number, max: number) => number;
+	normalizesign: (x: number, min: number, max: number) => number;
 	circclamp: (x: number, min: number, max: number) => number;
 	lcm: (a: number, b: number) => number;
 	hcf: (a: number, b: number) => number;

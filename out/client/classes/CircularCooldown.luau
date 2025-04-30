@@ -2,7 +2,23 @@
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local TweenService = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "services").TweenService
 local BaseApexObject = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "internals", "BaseApexObject").BaseApexObject
+local mathv = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "generics", "mathv")
 local TRANSPARENCY_SEQUENCE = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(0.501, 1), NumberSequenceKeypoint.new(1, 1) })
+local function playCooldown(obj)
+	if obj._Tween ~= nil then
+		obj._Tween:Destroy()
+	end
+	obj._Tween = TweenService:Create(obj._CooldownObject, TweenInfo.new(obj.RemainingDuration / obj.Rate, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0), {
+		Value = 0,
+	})
+	obj._Tween:Play()
+	obj._Tween.Completed:Connect(function()
+		obj._CompleteEvent:Fire()
+		if obj._Tween ~= nil then
+			obj._Tween:Destroy()
+		end
+	end)
+end
 local dCircularCooldown
 do
 	local super = BaseApexObject
@@ -54,12 +70,6 @@ do
 			(folder:FindFirstChild("Left")).ZIndex = val;
 			(folder:FindFirstChild("Right")).ZIndex = val
 		end)
-		-- #region Init
-		self._CooldownObject.Changed:Connect(function()
-			self._ChangeEvent:Fire()
-			-- FLAG: implement circular spinny logic here
-		end)
-		-- #endregion
 		-- #region Create the semicircle images.
 		local left = Instance.new("ImageLabel")
 		left.BackgroundTransparency = 1
@@ -92,31 +102,38 @@ do
 		left.Parent = folder
 		right.Parent = folder
 		-- #endregion
+		-- #region Connect changed event to the internal countdown object.
+		self._CooldownObject.Changed:Connect(function()
+			self._ChangeEvent:Fire()
+			self.RemainingDuration = self._CooldownObject.Value
+			if self.RemainingDuration > self.Duration / 2 then
+				leftGradient.Rotation = 0
+				local norm = mathv.normalize(self.RemainingDuration, self.Duration / 2, self.Duration)
+				local rotation = mathv.lerp(0, -180, norm)
+				rightGradient.Rotation = rotation
+			else
+				rightGradient.Rotation = 0
+				local norm = mathv.normalize(self.RemainingDuration, 0, self.Duration / 2)
+				local rotation = mathv.lerp(180, 0, norm)
+				leftGradient.Rotation = rotation
+			end
+		end)
+		-- #endregion
 		self.Object = folder
 	end
 	function dCircularCooldown:Init(object)
 		self.Object.Parent = object
 	end
 	function dCircularCooldown:Play()
-		-- #region Play the cooldown.
+		self.RemainingDuration = self.Duration
 		self.Object:SetAttribute("Visible", true)
 		self._CooldownObject.Value = self.RemainingDuration
-		if self._Tween ~= nil then
-			self._Tween:Destroy()
-		end
-		self._Tween = TweenService:Create(self._CooldownObject, TweenInfo.new(self.RemainingDuration / self.Rate, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, 0, false, 0), {
-			Value = 0,
-		})
-		self._Tween:Play()
-		-- #endregion
-		-- #region Finally fire completion events and Destroy connections when complete.
-		self._Tween.Completed:Connect(function()
-			self._CompleteEvent:Fire()
-			if self._Tween ~= nil then
-				self._Tween:Destroy()
-			end
-		end)
-		-- #endregion
+		playCooldown(self)
+	end
+	function dCircularCooldown:Resume()
+		self.Object:SetAttribute("Visible", true)
+		self._CooldownObject.Value = self.RemainingDuration
+		playCooldown(self)
 	end
 	function dCircularCooldown:Pause()
 		if self._Tween == nil then
