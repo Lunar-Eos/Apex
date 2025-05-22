@@ -5,6 +5,7 @@ local dCircularCooldown = TS.import(script, game:GetService("ReplicatedStorage")
 local dStateTable = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "StateTable").dStateTable
 local dTimer = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "Timer").dTimer
 local dRadialCooldown = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "RadialCooldown").dRadialCooldown
+local dPanel = TS.import(script, game:GetService("ReplicatedStorage"), "Imports", "classes", "Panel").dPanel
 local Prototype
 do
 	Prototype = setmetatable({}, {
@@ -25,14 +26,17 @@ do
 			if className == "StateTable" then
 				return dStateTable.new()
 			end
+			if className == "Timer" then
+				return dTimer.new()
+			end
 			if className == "CircularCooldown" then
 				return dCircularCooldown.new()
 			end
 			if className == "RadialCooldown" then
 				return dRadialCooldown.new()
 			end
-			if className == "Timer" then
-				return dTimer.new()
+			if className == "Panel" then
+				return dPanel.new()
 			end
 			do
 				error("Attempt to create an instance of unknown class name or type.")

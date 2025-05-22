@@ -147,7 +147,7 @@ export class dRadialCooldown extends BaseApexObject {
 		this.Object = folder;
 	}
 
-	Init(object: GuiObject | undefined) {
+	SetParent(object: GuiObject | undefined) {
 		this.Object.Parent = object;
 	}
 

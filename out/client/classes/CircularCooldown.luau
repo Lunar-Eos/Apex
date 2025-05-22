@@ -121,7 +121,7 @@ do
 		-- #endregion
 		self.Object = folder
 	end
-	function dCircularCooldown:Init(object)
+	function dCircularCooldown:SetParent(object)
 		self.Object.Parent = object
 	end
 	function dCircularCooldown:Play()

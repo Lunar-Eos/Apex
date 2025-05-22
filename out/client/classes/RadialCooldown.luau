@@ -117,7 +117,7 @@ do
 		-- #endregion
 		self.Object = folder
 	end
-	function dRadialCooldown:Init(object)
+	function dRadialCooldown:SetParent(object)
 		self.Object.Parent = object
 	end
 	function dRadialCooldown:Play()
